@@ -26,8 +26,7 @@ metadata:
   annotations:
     ead: $ead
 spec:
-  backoffLimit: 3
-  activeDeadlineSeconds: 86400
+  backoffLimit: 5
   template:
     metadata:
       labels:
