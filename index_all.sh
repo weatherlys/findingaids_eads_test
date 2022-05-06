@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 #kubectl create job --from=cronjob/specialcollections-manual-index specialcollections-manual-index-
 
@@ -10,9 +10,14 @@ do
   ead_no_slash=${ead//\//-}
   ead_no_underscore=${ead_no_slash//_/-}
   ead_no_extension=${ead_no_underscore%\.xml}
-  full_job_name="specialcollections-manual-index-$ead_no_extension"
-  truncated_job_name=${full_job_name:0:63}
-  job_name=${truncated_job_name%-}
+  #full_job_name="specialcollections-manual-index-$ead_no_extension"
+  #truncated_job_name=${full_job_name:0:63}
+  truncated_ead_no_extension=${ead_no_extension:0:31}
+  job_name="specialcollections-manual-index-${truncated_ead_no_extension%-} "
+  if [ -z "$REALLY_RUN" ]; then
+    echo "Dry run - set REALLY_RUN to run: $job_name"
+    continue
+  fi
   echo "apiVersion: batch/v1
 kind: Job
 metadata:
@@ -30,6 +35,14 @@ spec:
         role: manual-index
       namespace: specialcollections-test
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: "kubernetes.io/hostname"
+            labelSelector:
+              matchLabels:
+                app: specialcollections
+                role: manual-index
       restartPolicy: Never
       initContainers:
       - name: git-clone
@@ -80,5 +93,5 @@ spec:
       volumes:
       - emptyDir: {}
         name: eads
-" | kubectl --namespace specialcollections-test create -f -
+" | kubectl --namespace specialcollections-test create -f - || echo 'Failed to create job; continuing...'
 done
