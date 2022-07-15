@@ -5,6 +5,6 @@ jobstatus=$(cat jobstatus.json)
 count_total=$(echo $jobstatus | jq '.items | length')
 count_succeeded=$(echo $jobstatus | jq '[.items[].status.succeeded] | add')
 echo "Failed EADs:"
-echo $jobstatus | jq '.items[] | select(.status.succeeded != 1) | .metadata.annotations.ead'
+echo $jobstatus | jq -r '.items[] | select(.status.succeeded != 1) | .metadata.annotations.ead'
 echo "Succeeded: $count_succeeded/$count_total"
 echo "Failed: $(expr $count_total - $count_succeeded)/$count_total"
