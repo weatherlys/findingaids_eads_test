@@ -3,9 +3,12 @@
 #kubectl create job --from=cronjob/specialcollections-manual-index specialcollections-manual-index-
 
 EAD_LIST=`find * -name '*.xml' -print`
+total_eads=$(echo $EAD_LIST | wc -w | tr -d ' ')
+count=0
 for ead in $EAD_LIST
 do
-  echo " *** Queuing $ead *** "
+  count=$((count + 1))
+  echo " *** Queuing $ead ($count/$total_eads) *** "
   # format job name without /, _, . characters; truncate to 63 char or less; ensure no trailing -
   ead_no_slash=${ead//\//-}
   ead_no_underscore=${ead_no_slash//_/-}
